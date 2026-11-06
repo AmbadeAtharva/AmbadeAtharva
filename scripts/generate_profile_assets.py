@@ -52,6 +52,19 @@ def centered_text(value: str, x: int, y: int, size: int, fill: str, weight: int 
     )
 
 
+def multiline_text(
+    lines: list[str], x: int, y: int, size: int, fill: str, weight: int = 400, line_height: int = 28
+) -> str:
+    tspans = "".join(
+        f'<tspan x="{x}" dy="{0 if index == 0 else line_height}px">{escape(value)}</tspan>'
+        for index, value in enumerate(lines)
+    )
+    return (
+        f'<text x="{x}" y="{y}" fill="{fill}" font-family="ui-monospace, SFMono-Regular, '
+        f'Menlo, Monaco, Consolas, monospace" font-size="{size}px" font-weight="{weight}">{tspans}</text>'
+    )
+
+
 def rect(x: int, y: int, width: int, height: int, fill: str, stroke: str = "none", radius: int = 0) -> str:
     return f'<rect x="{x}" y="{y}" width="{width}" height="{height}" rx="{radius}" fill="{fill}" stroke="{stroke}"/>'
 
@@ -158,31 +171,29 @@ def system_map(theme: dict[str, str]) -> str:
 def projects(theme: dict[str, str]) -> str:
     content = shell(theme, "BUILD INDEX", "03", "FEATURED ENGINEERING WORK")
     featured = [
-        ("01", "CONCURRENT DOCUMENT PROCESSOR", "Rust / Rayon / JSONL", "Measured local benchmark: 3.88x throughput at 8 workers."),
-        ("02", "GPU INFERENCE ENGINE", "C++ / CUDA / ROCm / HIP", "Cross-platform kernel and benchmarking study."),
+        ("01", ["CONCURRENT DOCUMENT", "PROCESSOR"], "Rust / Rayon / JSONL", ["Measured local benchmark: 3.88x", "throughput at 8 workers."]),
+        ("02", ["GPU INFERENCE ENGINE"], "C++ / CUDA / ROCm / HIP", ["Cross-platform kernel and", "benchmarking study."]),
     ]
     for index, (number, title, stack, result) in enumerate(featured):
         x = 56 + index * 530
-        content += rect(x, 118, 498, 156, theme["panel"], theme["line"], 8)
+        content += rect(x, 118, 498, 174, theme["panel"], theme["line"], 8)
         content += text(number, x + 22, 153, METADATA, theme["accent"], 700)
-        content += text(title, x + 62, 153, CARD_TITLE, theme["ink"], 700)
-        content += text(stack, x + 22, 198, SECONDARY, theme["muted"])
-        content += text(result, x + 22, 240, SECONDARY, theme["muted"])
+        content += multiline_text(title, x + 62, 150, CARD_TITLE, theme["ink"], 700, 28)
+        content += text(stack, x + 22, 218, SECONDARY, theme["muted"])
+        content += multiline_text(result, x + 22, 258, SECONDARY, theme["muted"], line_height=28)
     smaller = [
-        ("03", "MULTI-AGENT DEVELOPMENT SYSTEM", "Five-agent plan / code / deploy / test / fix loop."),
-        ("04", "JIRA SLACK MCP", "Async MCP server for Jira and Confluence workflows."),
-        ("05", "MARKET-AI-AGENT", "ReAct agent with FastMCP tools for market intelligence."),
-        ("06", "PORTFOLIO", "TypeScript / React / Vite personal engineering site."),
+        ("03", "MULTI-AGENT DEVELOPMENT SYSTEM", ["Five-agent plan / code / deploy /", "test / fix loop."]),
+        ("04", "JIRA SLACK MCP", ["Async MCP server for Jira and", "Confluence workflows."]),
+        ("05", "MARKET-AI-AGENT", ["ReAct agent with FastMCP tools for", "market intelligence."]),
+        ("06", "PORTFOLIO", ["TypeScript / React / Vite personal", "engineering site."]),
     ]
     for index, (number, title, result) in enumerate(smaller):
-        x = 56 + (index % 2) * 530
-        y = 318 + (index // 2) * 88
-        content += text(number, x, y, METADATA, theme["accent"], 700)
-        content += text(title, x + 40, y, CARD_TITLE, theme["ink"], 700)
-        content += text(result, x + 40, y + 30, SECONDARY, theme["muted"])
-        if index % 2 == 0:
-            content += line(56, y + 53, 1104, y + 53, theme["line"])
-    return svg(theme, 500, content)
+        y = 326 + index * 126
+        content += rect(56, y, 1048, 108, theme["panel"], theme["line"], 8)
+        content += text(number, 82, y + 32, METADATA, theme["accent"], 700)
+        content += text(title, 150, y + 32, CARD_TITLE, theme["ink"], 700)
+        content += multiline_text(result, 150, y + 58, SECONDARY, theme["muted"], line_height=26)
+    return svg(theme, 856, content)
 
 
 def experience(theme: dict[str, str]) -> str:
@@ -238,19 +249,25 @@ def current_focus(theme: dict[str, str]) -> str:
 
 def telemetry(theme: dict[str, str]) -> str:
     content = shell(theme, "TELEMETRY", "04", "PUBLIC GITHUB SIGNALS")
-    stats = [("27", "PUBLIC REPOSITORIES"), ("1", "FOLLOWER"), ("0", "PUBLIC GISTS")]
+    stats = [("27", "REPOSITORIES"), ("1", "FOLLOWERS"), ("0", "PUBLIC GISTS")]
     for index, (value, label) in enumerate(stats):
-        x = 56 + index * 190
-        content += rect(x, 124, 164, 78, theme["panel"], theme["line"], 8)
-        content += text(value, x + 18, 163, DISPLAY, theme["accent"], 700)
-        content += text(label, x + 18, 190, METADATA, theme["muted"], 700)
-    content += rect(646, 124, 458, 78, theme["panel"], theme["line"], 8)
-    content += text("REPOSITORY LANGUAGE SUMMARY", 668, 151, METADATA, theme["accent"], 700)
-    content += text("Python 10  ·  HTML 2  ·  Jupyter 2  ·  JavaScript 1", 668, 178, SECONDARY, theme["ink"])
-    content += text("Rust 1  ·  TypeScript 1", 668, 202, SECONDARY, theme["ink"])
-    content += text("LIVE CONTRIBUTION CALENDAR", 56, 254, METADATA, theme["accent"], 700)
-    content += text("Contribution calendar — click through for the current GitHub view.", 56, 283, SECONDARY, theme["muted"])
-    return svg(theme, 318, content)
+        x = 56 + index * 350
+        content += rect(x, 124, 318, 78, theme["panel"], theme["line"], 8)
+        content += text(value, x + 22, 163, DISPLAY, theme["accent"], 700)
+        content += text(label, x + 108, 163, METADATA, theme["muted"], 700)
+    content += rect(56, 230, 1048, 112, theme["panel"], theme["line"], 8)
+    content += text("REPOSITORY LANGUAGE SUMMARY", 82, 262, METADATA, theme["accent"], 700)
+    content += multiline_text(
+        ["Python 10  ·  HTML 2  ·  Jupyter 2  ·  JavaScript 1  ·", "Rust 1  ·  TypeScript 1"],
+        82,
+        296,
+        SECONDARY,
+        theme["ink"],
+        line_height=28,
+    )
+    content += text("LIVE CONTRIBUTION CALENDAR", 56, 390, METADATA, theme["accent"], 700)
+    content += text("Contribution calendar — click through for the current GitHub view.", 56, 419, SECONDARY, theme["muted"])
+    return svg(theme, 454, content)
 
 
 GENERATORS = {
