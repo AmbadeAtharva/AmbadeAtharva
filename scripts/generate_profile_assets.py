@@ -170,30 +170,25 @@ def system_map(theme: dict[str, str]) -> str:
 
 def projects(theme: dict[str, str]) -> str:
     content = shell(theme, "BUILD INDEX", "03", "FEATURED ENGINEERING WORK")
-    featured = [
-        ("01", ["CONCURRENT DOCUMENT", "PROCESSOR"], "Rust / Rayon / JSONL", ["Measured local benchmark: 3.88x", "throughput at 8 workers."]),
-        ("02", ["GPU INFERENCE ENGINE"], "C++ / CUDA / ROCm / HIP", ["Cross-platform kernel and", "benchmarking study."]),
+    builds = [
+        ("01", ["CONCURRENT DOCUMENT PROCESSOR"], "Rust · Rayon · JSONL", ["Measured local benchmark: 3.88x throughput", "at 8 workers."]),
+        ("02", ["GPU INFERENCE ENGINE"], "C++ · CUDA · ROCm/HIP", ["Cross-platform kernel and benchmarking", "study."]),
+        ("03", ["MULTI-AGENT DEVELOPMENT SYSTEM"], None, ["Five-agent plan / code / deploy / test /", "fix loop."]),
+        ("04", ["JIRA SLACK MCP"], None, ["Async MCP server for Jira and Confluence", "workflows."]),
+        ("05", ["MARKET-AI-AGENT"], None, ["ReAct agent with FastMCP tools for market", "intelligence."]),
+        ("06", ["PORTFOLIO"], None, ["TypeScript / React / Vite personal", "engineering site."]),
     ]
-    for index, (number, title, stack, result) in enumerate(featured):
-        x = 56 + index * 530
-        content += rect(x, 118, 498, 174, theme["panel"], theme["line"], 8)
-        content += text(number, x + 22, 153, METADATA, theme["accent"], 700)
-        content += multiline_text(title, x + 62, 150, CARD_TITLE, theme["ink"], 700, 28)
-        content += text(stack, x + 22, 218, SECONDARY, theme["muted"])
-        content += multiline_text(result, x + 22, 258, SECONDARY, theme["muted"], line_height=28)
-    smaller = [
-        ("03", "MULTI-AGENT DEVELOPMENT SYSTEM", ["Five-agent plan / code / deploy /", "test / fix loop."]),
-        ("04", "JIRA SLACK MCP", ["Async MCP server for Jira and", "Confluence workflows."]),
-        ("05", "MARKET-AI-AGENT", ["ReAct agent with FastMCP tools for", "market intelligence."]),
-        ("06", "PORTFOLIO", ["TypeScript / React / Vite personal", "engineering site."]),
-    ]
-    for index, (number, title, result) in enumerate(smaller):
-        y = 326 + index * 126
-        content += rect(56, y, 1048, 108, theme["panel"], theme["line"], 8)
-        content += text(number, 82, y + 32, METADATA, theme["accent"], 700)
-        content += text(title, 150, y + 32, CARD_TITLE, theme["ink"], 700)
-        content += multiline_text(result, 150, y + 58, SECONDARY, theme["muted"], line_height=26)
-    return svg(theme, 856, content)
+    for index, (number, title, stack, result) in enumerate(builds):
+        y = 118 + index * 220
+        content += rect(56, y, 1048, 200, theme["panel"], theme["line"], 8)
+        content += text(number, 100, y + 45, METADATA, theme["accent"], 700)
+        content += multiline_text(title, 170, y + 45, CARD_TITLE, theme["ink"], 700, 30)
+        if stack:
+            content += text(stack, 100, y + 85, SECONDARY, theme["muted"])
+            content += multiline_text(result, 100, y + 125, SECONDARY, theme["muted"], line_height=30)
+        else:
+            content += multiline_text(result, 100, y + 105, SECONDARY, theme["muted"], line_height=30)
+    return svg(theme, 1470, content)
 
 
 def experience(theme: dict[str, str]) -> str:
@@ -249,25 +244,25 @@ def current_focus(theme: dict[str, str]) -> str:
 
 def telemetry(theme: dict[str, str]) -> str:
     content = shell(theme, "TELEMETRY", "04", "PUBLIC GITHUB SIGNALS")
-    stats = [("27", "REPOSITORIES"), ("1", "FOLLOWERS"), ("0", "PUBLIC GISTS")]
+    stats = [("27", "REPOSITORIES"), ("1", "FOLLOWER"), ("0", "GISTS")]
     for index, (value, label) in enumerate(stats):
         x = 56 + index * 350
         content += rect(x, 124, 318, 78, theme["panel"], theme["line"], 8)
-        content += text(value, x + 22, 163, DISPLAY, theme["accent"], 700)
-        content += text(label, x + 108, 163, METADATA, theme["muted"], 700)
-    content += rect(56, 230, 1048, 112, theme["panel"], theme["line"], 8)
-    content += text("REPOSITORY LANGUAGE SUMMARY", 82, 262, METADATA, theme["accent"], 700)
+        content += text(value, x + 40, 163, DISPLAY, theme["accent"], 700)
+        content += text(label, x + 150, 163, METADATA, theme["muted"], 700)
+    content += rect(56, 230, 1048, 150, theme["panel"], theme["line"], 8)
+    content += text("REPOSITORY LANGUAGE SUMMARY", 100, 268, METADATA, theme["accent"], 700)
     content += multiline_text(
-        ["Python 10  ·  HTML 2  ·  Jupyter 2  ·  JavaScript 1  ·", "Rust 1  ·  TypeScript 1"],
-        82,
-        296,
+        ["Python 10 · HTML 2 · Jupyter 2 · JavaScript 1", "Rust 1 · TypeScript 1"],
+        100,
+        310,
         SECONDARY,
         theme["ink"],
         line_height=28,
     )
-    content += text("LIVE CONTRIBUTION CALENDAR", 56, 390, METADATA, theme["accent"], 700)
-    content += text("Contribution calendar — click through for the current GitHub view.", 56, 419, SECONDARY, theme["muted"])
-    return svg(theme, 454, content)
+    content += text("LIVE CONTRIBUTION ACTIVITY", 56, 438, METADATA, theme["accent"], 700)
+    content += text("Contribution graph links to the current GitHub view.", 56, 468, SECONDARY, theme["muted"])
+    return svg(theme, 510, content)
 
 
 GENERATORS = {
