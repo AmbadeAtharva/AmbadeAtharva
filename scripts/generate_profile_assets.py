@@ -13,6 +13,7 @@ CARD_TITLE = 26
 BODY = 24
 SECONDARY = 23
 METADATA = 21
+CHAR_WIDTH_FACTOR = 0.6
 
 THEMES = {
     "light": {
@@ -52,9 +53,40 @@ def centered_text(value: str, x: int, y: int, size: int, fill: str, weight: int 
     )
 
 
-def multiline_text(
-    lines: list[str], x: int, y: int, size: int, fill: str, weight: int = 400, line_height: int = 28
+def vertically_centered_text(
+    value: str,
+    x: int,
+    center_y: int,
+    size: int,
+    fill: str,
+    weight: int = 400,
+    anchor: str | None = None,
 ) -> str:
+    text_anchor = f' text-anchor="{anchor}"' if anchor else ""
+    return (
+        f'<text x="{x}" y="{center_y}"{text_anchor} dominant-baseline="middle" fill="{fill}" '
+        f'font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" '
+        f'font-size="{size}px" font-weight="{weight}">{escape(value)}</text>'
+    )
+
+
+def multiline_text(
+    lines: list[str],
+    x: int,
+    y: int,
+    size: int,
+    fill: str,
+    weight: int = 400,
+    line_height: int = 28,
+    max_width: int | None = None,
+    context: str = "text",
+) -> str:
+    if max_width is not None:
+        widest = max((len(value) for value in lines), default=0) * size * CHAR_WIDTH_FACTOR
+        if widest > max_width:
+            raise ValueError(
+                f"{context} line is too wide: estimated {widest:.1f}px exceeds {max_width}px"
+            )
     tspans = "".join(
         f'<tspan x="{x}" dy="{0 if index == 0 else line_height}px">{escape(value)}</tspan>'
         for index, value in enumerate(lines)
@@ -63,6 +95,24 @@ def multiline_text(
         f'<text x="{x}" y="{y}" fill="{fill}" font-family="ui-monospace, SFMono-Regular, '
         f'Menlo, Monaco, Consolas, monospace" font-size="{size}px" font-weight="{weight}">{tspans}</text>'
     )
+
+
+def bounded_text(
+    value: str,
+    x: int,
+    y: int,
+    size: int,
+    fill: str,
+    max_width: int,
+    weight: int = 400,
+    context: str = "text",
+) -> str:
+    estimated_width = len(value) * size * CHAR_WIDTH_FACTOR
+    if estimated_width > max_width:
+        raise ValueError(
+            f"{context} line is too wide: estimated {estimated_width:.1f}px exceeds {max_width}px"
+        )
+    return text(value, x, y, size, fill, weight)
 
 
 def rect(x: int, y: int, width: int, height: int, fill: str, stroke: str = "none", radius: int = 0) -> str:
@@ -84,10 +134,11 @@ def shell(theme: dict[str, str], label: str, number: str, title: str, readable: 
     label_size = METADATA if readable else 14
     title_size = SECTION_TITLE if readable else 22
     title_x = 430 if readable else 315
+    header_center_y = 24 + 56 / 2
     return (
         rect(32, 24, WIDTH - 64, 56, theme["panel"], theme["line"], 8)
-        + text(f"{number} / {label}", 56, 59, label_size, theme["accent"], 700)
-        + text(title, title_x, 59, title_size, theme["ink"], 700)
+        + vertically_centered_text(f"{number} / {label}", 56, header_center_y, label_size, theme["accent"], 700)
+        + vertically_centered_text(title, title_x, header_center_y, title_size, theme["ink"], 700)
     )
 
 
@@ -128,17 +179,25 @@ def header(theme: dict[str, str]) -> str:
 def whoami(theme: dict[str, str]) -> str:
     content = shell(theme, "WHOAMI", "01", "ENGINEERING IDENTITY")
     blocks = [
-        ("WHAT I BUILD", "Production AI applications, backend services,", "distributed workflows, and cloud automation."),
-        ("HOW I WORK", "Measure bottlenecks, design reliable interfaces,", "automate delivery, and validate results."),
-        ("CURRENT INTERESTS", "Agentic systems, inference infrastructure,", "developer tools, performance, and observability."),
+        ("WHAT I BUILD", "Production AI, backend services, and", "distributed workflows with cloud automation."),
+        ("HOW I WORK", "Measure bottlenecks, design reliable systems,", "automate delivery, and validate results."),
+        ("CURRENT INTERESTS", "Agentic systems, inference infrastructure,", "developer tooling, and observability."),
     ]
     for index, block in enumerate(blocks):
         y = 116 + index * 104
         content += rect(56, y, 1048, 84, theme["panel"], theme["line"], 8)
         content += text(f"0{index + 1}", 82, y + 34, METADATA, theme["accent"], 700)
-        content += text(block[0], 150, y + 34, CARD_TITLE, theme["ink"], 700)
-        content += text(block[1], 440, y + 34, BODY, theme["muted"])
-        content += text(block[2], 440, y + 64, BODY, theme["muted"])
+        content += text(block[0], 150, y + 34, 22, theme["ink"], 700)
+        content += multiline_text(
+            [block[1], block[2]],
+            400,
+            y + 32,
+            SECONDARY,
+            theme["muted"],
+            line_height=29,
+            max_width=630,
+            context=f"WHOAMI row {index + 1}",
+        )
     return svg(theme, 454, content)
 
 
@@ -171,24 +230,29 @@ def system_map(theme: dict[str, str]) -> str:
 def projects(theme: dict[str, str]) -> str:
     content = shell(theme, "BUILD INDEX", "03", "FEATURED ENGINEERING WORK")
     builds = [
-        ("01", ["CONCURRENT DOCUMENT PROCESSOR"], "Rust · Rayon · JSONL", ["Measured local benchmark: 3.88x throughput", "at 8 workers."]),
-        ("02", ["GPU INFERENCE ENGINE"], "C++ · CUDA · ROCm/HIP", ["Cross-platform kernel and benchmarking", "study."]),
-        ("03", ["MULTI-AGENT DEVELOPMENT SYSTEM"], None, ["Five-agent plan / code / deploy / test /", "fix loop."]),
-        ("04", ["JIRA SLACK MCP"], None, ["Async MCP server for Jira and Confluence", "workflows."]),
-        ("05", ["MARKET-AI-AGENT"], None, ["ReAct agent with FastMCP tools for market", "intelligence."]),
-        ("06", ["PORTFOLIO"], None, ["TypeScript / React / Vite personal", "engineering site."]),
+        ("01", "CONCURRENT DOCUMENT PROCESSOR", "Rust · Rayon · JSONL", "Measured local benchmark: 3.88x throughput at 8 workers."),
+        ("02", "GPU INFERENCE ENGINE", "C++ · CUDA · ROCm/HIP", "Cross-platform kernel and benchmarking study."),
+        ("03", "MULTI-AGENT DEVELOPMENT SYSTEM", None, "Five-agent plan / code / deploy / test / fix loop."),
+        ("04", "JIRA SLACK MCP", None, "Async MCP server for Jira and Confluence workflows."),
+        ("05", "MARKET-AI-AGENT", None, "ReAct agent with FastMCP tools for market intelligence."),
+        ("06", "PORTFOLIO", None, "TypeScript / React / Vite personal engineering site."),
     ]
+    card_x, card_width, card_height, row_gap = 56, 1048, 155, 170
+    description_x = 100
+    description_width = card_x + card_width - 80 - description_x
     for index, (number, title, stack, result) in enumerate(builds):
-        y = 118 + index * 220
-        content += rect(56, y, 1048, 200, theme["panel"], theme["line"], 8)
+        y = 118 + index * row_gap
+        content += rect(card_x, y, card_width, card_height, theme["panel"], theme["line"], 8)
         content += text(number, 100, y + 45, METADATA, theme["accent"], 700)
-        content += multiline_text(title, 170, y + 45, CARD_TITLE, theme["ink"], 700, 30)
+        content += bounded_text(
+            title, 170, y + 45, CARD_TITLE, theme["ink"], 850, 700, f"project {number} title"
+        )
         if stack:
-            content += text(stack, 100, y + 85, SECONDARY, theme["muted"])
-            content += multiline_text(result, 100, y + 125, SECONDARY, theme["muted"], line_height=30)
-        else:
-            content += multiline_text(result, 100, y + 105, SECONDARY, theme["muted"], line_height=30)
-    return svg(theme, 1470, content)
+            content += bounded_text(stack, description_x, y + 82, SECONDARY, theme["muted"], description_width, context=f"project {number} technology")
+        content += bounded_text(
+            result, description_x, y + 119, SECONDARY, theme["muted"], description_width, context=f"project {number} description"
+            )
+    return svg(theme, 1183, content)
 
 
 def experience(theme: dict[str, str]) -> str:
@@ -213,22 +277,30 @@ def experience(theme: dict[str, str]) -> str:
 def stack(theme: dict[str, str]) -> str:
     content = shell(theme, "STACK", "05", "ENGINEERING TOOLKIT")
     groups = [
-        ("LANGUAGES", "Python  ·  TypeScript  ·  Rust  ·  Go  ·", "C++  ·  SQL"),
-        ("AI + MODEL SYSTEMS", "LangGraph  ·  RAG  ·  MCP  ·  PyTorch  ·", "Vertex AI"),
-        ("BACKEND + DISTRIBUTED", "FastAPI  ·  REST  ·  gRPC  ·  Redis  ·", "Kafka"),
-        ("CLOUD + INFRASTRUCTURE", "AWS  ·  Docker  ·  Kubernetes  ·", "Terraform  ·  CI/CD"),
-        ("DATA + PERSISTENCE", "PostgreSQL  ·  Firestore  ·  Pinecone  ·", "ChromaDB"),
-        ("OBSERVABILITY + DELIVERY", "MLflow  ·  Datadog  ·  Splunk  ·", "CloudWatch"),
+        ("LANGUAGES", "Python · TypeScript · Rust", "Go · C++ · SQL"),
+        ("AI + MODEL SYSTEMS", "LangGraph · RAG · MCP", "PyTorch · Vertex AI"),
+        ("BACKEND + DISTRIBUTED", "FastAPI · REST · gRPC", "Redis · Kafka"),
+        ("CLOUD + INFRASTRUCTURE", "AWS · Docker · Kubernetes", "Terraform · CI/CD"),
+        ("DATA + PERSISTENCE", "PostgreSQL · Firestore", "Pinecone · ChromaDB"),
+        ("OBSERVABILITY + DELIVERY", "MLflow · Datadog", "Splunk · CloudWatch"),
     ]
+    heading_size, value_size = 28, 23
     for index, (label, values, values_continued) in enumerate(groups):
         x = 56 + (index % 2) * 530
-        y = 124 + (index // 2) * 92
-        content += rect(x, y, 498, 84, theme["panel"], theme["line"], 6)
-        content += text(label, x + 18, y + 25, METADATA, theme["accent"], 700)
-        content += text(values, x + 18, y + 53, SECONDARY, theme["ink"])
-        if values_continued:
-            content += text(values_continued, x + 18, y + 78, SECONDARY, theme["ink"])
-    return svg(theme, 470, content)
+        y = 124 + (index // 2) * 112
+        content += rect(x, y, 498, 104, theme["panel"], theme["line"], 6)
+        content += text(label, x + 18, y + 31, heading_size, theme["accent"], 700)
+        content += bounded_text(values, x + 18, y + 68, value_size, theme["ink"], 450, context=f"{label} values")
+        content += bounded_text(
+            values_continued,
+            x + 18,
+            y + 96,
+            value_size,
+            theme["ink"],
+            450,
+            context=f"{label} continued values",
+        )
+    return svg(theme, 526, content)
 
 
 def current_focus(theme: dict[str, str]) -> str:
@@ -245,20 +317,22 @@ def current_focus(theme: dict[str, str]) -> str:
 def telemetry(theme: dict[str, str]) -> str:
     content = shell(theme, "TELEMETRY", "04", "PUBLIC GITHUB SIGNALS")
     stats = [("27", "REPOSITORIES"), ("1", "FOLLOWER"), ("0", "GISTS")]
+    stat_center_y = 124 + 78 / 2
     for index, (value, label) in enumerate(stats):
         x = 56 + index * 350
         content += rect(x, 124, 318, 78, theme["panel"], theme["line"], 8)
-        content += text(value, x + 40, 163, DISPLAY, theme["accent"], 700)
-        content += text(label, x + 150, 163, METADATA, theme["muted"], 700)
+        content += vertically_centered_text(value, x + 40, stat_center_y, DISPLAY, theme["accent"], 700)
+        content += vertically_centered_text(label, x + 150, stat_center_y, METADATA, theme["muted"], 700)
     content += rect(56, 230, 1048, 150, theme["panel"], theme["line"], 8)
     content += text("REPOSITORY LANGUAGE SUMMARY", 100, 268, METADATA, theme["accent"], 700)
-    content += multiline_text(
-        ["Python 10 · HTML 2 · Jupyter 2 · JavaScript 1", "Rust 1 · TypeScript 1"],
+    content += bounded_text(
+        "Python 10 · HTML 2 · Jupyter 2 · JavaScript 1 · Rust 1 · TypeScript 1",
         100,
         310,
-        SECONDARY,
+        22,
         theme["ink"],
-        line_height=28,
+        960,
+        context="telemetry language summary",
     )
     content += text("LIVE CONTRIBUTION ACTIVITY", 56, 438, METADATA, theme["accent"], 700)
     content += text("Contribution graph links to the current GitHub view.", 56, 468, SECONDARY, theme["muted"])
