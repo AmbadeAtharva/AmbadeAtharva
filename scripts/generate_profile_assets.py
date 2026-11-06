@@ -35,6 +35,14 @@ def text(value: str, x: int, y: int, size: int, fill: str, weight: int = 400) ->
     )
 
 
+def centered_text(value: str, x: int, y: int, size: int, fill: str, weight: int = 400) -> str:
+    return (
+        f'<text x="{x}" y="{y}" text-anchor="middle" fill="{fill}" font-family="ui-monospace, '
+        f'SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="{size}px" font-weight="{weight}">'
+        f"{escape(value)}</text>"
+    )
+
+
 def rect(x: int, y: int, width: int, height: int, fill: str, stroke: str = "none", radius: int = 0) -> str:
     return f'<rect x="{x}" y="{y}" width="{width}" height="{height}" rx="{radius}" fill="{fill}" stroke="{stroke}"/>'
 
@@ -65,20 +73,26 @@ def header(theme: dict[str, str]) -> str:
     content += text("BACKEND & SYSTEMS ENGINEER", 58, 211, 20, theme["ink"], 700)
     content += text("Building reliable AI applications, backend platforms,", 58, 257, 18, theme["muted"])
     content += text("agentic workflows, and cloud infrastructure.", 58, 284, 18, theme["muted"])
-    content += rect(690, 130, 414, 168, theme["panel"], theme["line"], 8)
-    content += text("SYSTEM FLOW", 720, 161, 13, theme["accent"], 700)
+    content += rect(56, 320, 1048, 118, theme["panel"], theme["line"], 8)
+    content += text("SYSTEM FLOW", 82, 348, 13, theme["accent"], 700)
     nodes = ["INPUT", "API", "AGENT / MODEL", "DATA", "INFRA", "OBSERVE"]
+    centers = [170, 334, 498, 662, 826, 990]
     for index, node in enumerate(nodes):
-        x = 720 + index * 62
-        content += rect(x, 202, 48, 34, theme["accent_soft"], "none", 5)
-        content += text(node, x + 24 - (len(node) * 3), 223, 8, theme["ink"], 700)
+        center = centers[index]
+        x = center - 66
+        content += rect(x, 365, 132, 64, theme["accent_soft"], "none", 6)
+        if node == "AGENT / MODEL":
+            content += centered_text("AGENT", center, 391, 14, theme["ink"], 700)
+            content += centered_text("/ MODEL", center, 410, 14, theme["ink"], 700)
+        else:
+            content += centered_text(node, center, 401, 14, theme["ink"], 700)
         if index < len(nodes) - 1:
-            content += line(x + 48, 219, x + 59, 219, theme["accent"], 2)
-    content += text("SAN FRANCISCO BAY AREA", 58, 348, 13, theme["muted"], 700)
-    content += text("OPEN TO AI / SOFTWARE ENGINEERING OPPORTUNITIES", 315, 348, 13, theme["muted"], 700)
-    content += text("PYTHON  /  TYPESCRIPT  /  RUST  /  GO", 770, 348, 13, theme["muted"], 700)
-    content += line(56, 379, WIDTH - 56, 379, theme["line"])
-    return svg(theme, 412, content)
+            content += line(center + 66, 397, centers[index + 1] - 66, 397, theme["accent"], 2)
+    content += text("SAN FRANCISCO BAY AREA", 58, 476, 13, theme["muted"], 700)
+    content += text("OPEN TO AI / SOFTWARE ENGINEERING OPPORTUNITIES", 315, 476, 13, theme["muted"], 700)
+    content += text("PYTHON  /  TYPESCRIPT  /  RUST  /  GO", 770, 476, 13, theme["muted"], 700)
+    content += line(56, 507, WIDTH - 56, 507, theme["line"])
+    return svg(theme, 540, content)
 
 
 def whoami(theme: dict[str, str]) -> str:

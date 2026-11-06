@@ -74,9 +74,9 @@
 
 <a href="https://github.com/AmbadeAtharva?tab=overview">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ghchart.rshah.org/62d9d4/AmbadeAtharva">
-    <source media="(prefers-color-scheme: light)" srcset="https://ghchart.rshah.org/007f8b/AmbadeAtharva">
-    <img alt="GitHub contribution activity calendar for AmbadeAtharva" src="https://ghchart.rshah.org/007f8b/AmbadeAtharva" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-activity-graph-eight.vercel.app/graph?username=AmbadeAtharva&amp;bg_color=0d1117&amp;color=f0f6fc&amp;line=5eead4&amp;point=5eead4&amp;area=true&amp;area_color=123337&amp;hide_border=true&amp;hide_title=true">
+    <source media="(prefers-color-scheme: light)" srcset="https://github-readme-activity-graph-eight.vercel.app/graph?username=AmbadeAtharva&amp;bg_color=ffffff&amp;color=1f2328&amp;line=0f766e&amp;point=0f766e&amp;area=true&amp;area_color=d9f2f1&amp;hide_border=true&amp;hide_title=true">
+    <img alt="Atharva Ambade's GitHub contribution activity" src="https://github-readme-activity-graph-eight.vercel.app/graph?username=AmbadeAtharva&amp;bg_color=ffffff&amp;color=1f2328&amp;line=0f766e&amp;point=0f766e&amp;area=true&amp;area_color=d9f2f1&amp;hide_border=true&amp;hide_title=true" width="100%">
   </picture>
 </a>
 
