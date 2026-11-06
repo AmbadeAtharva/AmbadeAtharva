@@ -5,12 +5,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WIDTH = 1160
 
+# SVGs render at roughly 800px on GitHub, so internal sizes account for the
+# viewBox scale while keeping descriptive text readable.
+DISPLAY = 44
+SECTION_TITLE = 36
+CARD_TITLE = 26
+BODY = 24
+SECONDARY = 23
+METADATA = 21
+
 THEMES = {
     "light": {
         "background": "#f7f8fa",
         "panel": "#ffffff",
-        "ink": "#14202b",
-        "muted": "#5d6b77",
+        "ink": "#1f2328",
+        "muted": "#57606a",
         "line": "#d9e1e7",
         "accent": "#007f8b",
         "accent_soft": "#d9f2f1",
@@ -18,8 +27,8 @@ THEMES = {
     "dark": {
         "background": "#10161c",
         "panel": "#17212a",
-        "ink": "#f0f5f7",
-        "muted": "#a7b6bf",
+        "ink": "#f0f6fc",
+        "muted": "#b1bac4",
         "line": "#31404a",
         "accent": "#62d9d4",
         "accent_soft": "#1b4144",
@@ -58,16 +67,24 @@ def svg(theme: dict[str, str], height: int, content: str) -> str:
     )
 
 
-def shell(theme: dict[str, str], label: str, number: str, title: str) -> str:
+def shell(theme: dict[str, str], label: str, number: str, title: str, readable: bool = True) -> str:
+    label_size = METADATA if readable else 14
+    title_size = SECTION_TITLE if readable else 22
+    title_x = 430 if readable else 315
     return (
         rect(32, 24, WIDTH - 64, 56, theme["panel"], theme["line"], 8)
-        + text(f"{number} / {label}", 56, 59, 14, theme["accent"], 700)
-        + text(title, 315, 59, 22, theme["ink"], 700)
+        + text(f"{number} / {label}", 56, 59, label_size, theme["accent"], 700)
+        + text(title, title_x, 59, title_size, theme["ink"], 700)
     )
 
 
 def header(theme: dict[str, str]) -> str:
-    content = shell(theme, "IDENTITY", "00", "AI SYSTEMS CONTROL PLANE")
+    theme = {
+        **theme,
+        "ink": "#14202b" if theme["background"] == "#f7f8fa" else "#f0f5f7",
+        "muted": "#5d6b77" if theme["background"] == "#f7f8fa" else "#a7b6bf",
+    }
+    content = shell(theme, "IDENTITY", "00", "AI SYSTEMS CONTROL PLANE", readable=False)
     content += text("ATHARVA AMBADE", 56, 145, 44, theme["ink"], 700)
     content += text("AI ENGINEER", 58, 181, 20, theme["accent"], 700)
     content += text("BACKEND & SYSTEMS ENGINEER", 58, 211, 20, theme["ink"], 700)
@@ -98,41 +115,44 @@ def header(theme: dict[str, str]) -> str:
 def whoami(theme: dict[str, str]) -> str:
     content = shell(theme, "WHOAMI", "01", "ENGINEERING IDENTITY")
     blocks = [
-        ("WHAT I BUILD", "Production AI applications,", "backend services, distributed workflows,", "and cloud automation."),
-        ("HOW I WORK", "Measure bottlenecks, design", "reliable interfaces, automate delivery,", "and validate results."),
-        ("CURRENT INTERESTS", "Agentic systems, inference", "infrastructure, developer tools,", "backend performance, observability."),
+        ("WHAT I BUILD", "Production AI applications, backend services,", "distributed workflows, and cloud automation."),
+        ("HOW I WORK", "Measure bottlenecks, design reliable interfaces,", "automate delivery, and validate results."),
+        ("CURRENT INTERESTS", "Agentic systems, inference infrastructure,", "developer tools, performance, and observability."),
     ]
     for index, block in enumerate(blocks):
-        x = 56 + index * 350
-        content += rect(x, 122, 318, 156, theme["panel"], theme["line"], 8)
-        content += text(f"0{index + 1}", x + 22, 153, 14, theme["accent"], 700)
-        content += text(block[0], x + 22, 184, 14, theme["ink"], 700)
-        content += text(block[1], x + 22, 220, 14, theme["muted"])
-        content += text(block[2], x + 22, 244, 14, theme["muted"])
-        content += text(block[3], x + 22, 268, 14, theme["muted"])
-    return svg(theme, 318, content)
+        y = 116 + index * 104
+        content += rect(56, y, 1048, 84, theme["panel"], theme["line"], 8)
+        content += text(f"0{index + 1}", 82, y + 34, METADATA, theme["accent"], 700)
+        content += text(block[0], 150, y + 34, CARD_TITLE, theme["ink"], 700)
+        content += text(block[1], 440, y + 34, BODY, theme["muted"])
+        content += text(block[2], 440, y + 64, BODY, theme["muted"])
+    return svg(theme, 454, content)
 
 
 def system_map(theme: dict[str, str]) -> str:
     content = shell(theme, "SYSTEM MAP", "02", "FROM MODEL TO OPERATING SYSTEM")
-    columns = [
-        ("AI + AGENTS", ["LLM applications", "MCP integrations", "RAG + retrieval", "Evaluation"]),
-        ("BACKEND + SYSTEMS", ["APIs + services", "Distributed processing", "Concurrency + caching", "Databases"]),
-        ("INFRASTRUCTURE", ["AWS + Azure + GCP", "Docker + Kubernetes", "Terraform + CI/CD", "Observability"]),
+    layers = [
+        ("AI + AGENTS", "LLM applications · MCP integrations · RAG and retrieval · Evaluation"),
+        ("BACKEND + SYSTEMS", "APIs and services · Distributed processing · Concurrency and caching · Databases"),
+        ("INFRASTRUCTURE", "AWS · Azure · GCP · Docker · Kubernetes · Terraform · CI/CD · Observability"),
     ]
-    for index, (title, items) in enumerate(columns):
-        x = 68 + index * 354
-        content += rect(x, 124, 292, 168, theme["panel"], theme["line"], 8)
-        content += text(title, x + 22, 155, 14, theme["accent"], 700)
-        for item_index, item in enumerate(items):
-            y = 190 + item_index * 24
-            content += rect(x + 22, y - 14, 8, 8, theme["accent"], "none", 2)
-            content += text(item, x + 42, y - 5, 14, theme["ink"])
+    for index, (title, capabilities) in enumerate(layers):
+        y = 116 + index * 128
+        content += rect(56, y, 1048, 88, theme["panel"], theme["line"], 8)
+        content += text(title, 82, y + 40, CARD_TITLE, theme["accent"], 700)
+        if index == 0:
+            content += text("LLM applications · MCP integrations · RAG and", 420, y + 34, SECONDARY, theme["ink"])
+            content += text("retrieval · Evaluation", 420, y + 64, SECONDARY, theme["ink"])
+        elif index == 1:
+            content += text("APIs and services · Distributed processing ·", 420, y + 34, SECONDARY, theme["ink"])
+            content += text("Concurrency and caching · Databases", 420, y + 64, SECONDARY, theme["ink"])
+        else:
+            content += text("AWS · Azure · GCP · Docker · Kubernetes ·", 420, y + 34, SECONDARY, theme["ink"])
+            content += text("Terraform · CI/CD · Observability", 420, y + 64, SECONDARY, theme["ink"])
         if index < 2:
-            content += line(x + 292, 208, x + 342, 208, theme["accent"], 2)
-    content += text("interfaces", 344, 194, 11, theme["muted"])
-    content += text("delivery", 698, 194, 11, theme["muted"])
-    return svg(theme, 332, content)
+            content += text("↓", 570, y + 116, 28, theme["accent"], 700)
+            content += text(("interfaces" if index == 0 else "delivery"), 612, y + 116, METADATA, theme["muted"], 700)
+    return svg(theme, 500, content)
 
 
 def projects(theme: dict[str, str]) -> str:
@@ -143,11 +163,11 @@ def projects(theme: dict[str, str]) -> str:
     ]
     for index, (number, title, stack, result) in enumerate(featured):
         x = 56 + index * 530
-        content += rect(x, 118, 498, 132, theme["panel"], theme["line"], 8)
-        content += text(number, x + 22, 148, 14, theme["accent"], 700)
-        content += text(title, x + 62, 148, 14, theme["ink"], 700)
-        content += text(stack, x + 22, 181, 12, theme["muted"])
-        content += text(result, x + 22, 216, 12, theme["muted"])
+        content += rect(x, 118, 498, 156, theme["panel"], theme["line"], 8)
+        content += text(number, x + 22, 153, METADATA, theme["accent"], 700)
+        content += text(title, x + 62, 153, CARD_TITLE, theme["ink"], 700)
+        content += text(stack, x + 22, 198, SECONDARY, theme["muted"])
+        content += text(result, x + 22, 240, SECONDARY, theme["muted"])
     smaller = [
         ("03", "MULTI-AGENT DEVELOPMENT SYSTEM", "Five-agent plan / code / deploy / test / fix loop."),
         ("04", "JIRA SLACK MCP", "Async MCP server for Jira and Confluence workflows."),
@@ -156,61 +176,64 @@ def projects(theme: dict[str, str]) -> str:
     ]
     for index, (number, title, result) in enumerate(smaller):
         x = 56 + (index % 2) * 530
-        y = 282 + (index // 2) * 64
-        content += text(number, x, y, 13, theme["accent"], 700)
-        content += text(title, x + 40, y, 13, theme["ink"], 700)
-        content += text(result, x + 40, y + 22, 11, theme["muted"])
+        y = 318 + (index // 2) * 88
+        content += text(number, x, y, METADATA, theme["accent"], 700)
+        content += text(title, x + 40, y, CARD_TITLE, theme["ink"], 700)
+        content += text(result, x + 40, y + 30, SECONDARY, theme["muted"])
         if index % 2 == 0:
-            content += line(56, y + 39, 1104, y + 39, theme["line"])
-    return svg(theme, 450, content)
+            content += line(56, y + 53, 1104, y + 53, theme["line"])
+    return svg(theme, 500, content)
 
 
 def experience(theme: dict[str, str]) -> str:
     content = shell(theme, "EXPERIENCE ROUTE", "04", "RECENT SYSTEMS SHIPPED")
     entries = [
-        ("2026—NOW", "OATMEAL AI", "AI ENGINEER", "Production multi-agent advisory workflows with LangGraph, FastAPI, RAG, and Azure Container Apps."),
-        ("2025—2026", "BERKSHIRE HATHAWAY", "AI/ML ENGINEER", "AI and cloud infrastructure for educational applications using Gemini, Vertex AI, GCP, and Firebase."),
-        ("2024—2026", "CAL STATE EAST BAY", "SOFTWARE ENGINEER / AI-ML RESEARCH", "Student systems engineering alongside PyTorch research and AI evaluation pipelines."),
-        ("2022—2024", "ACCENTURE", "SOFTWARE ENGINEER (BACKEND)", "Enterprise data and delivery infrastructure with Python, Spark, Airflow, AWS, and Kubernetes."),
+        ("2026—NOW", "OATMEAL AI", "AI ENGINEER", "Production multi-agent advisory workflows with", "LangGraph, FastAPI, RAG, and Azure Container Apps."),
+        ("2025—2026", "BERKSHIRE HATHAWAY", "AI/ML ENGINEER", "AI and cloud infrastructure for educational", "applications using Gemini, Vertex AI, GCP, and Firebase."),
+        ("2024—2026", "CAL STATE EAST BAY", "SOFTWARE ENGINEER / AI-ML RESEARCH", "Student systems engineering alongside PyTorch", "research and AI evaluation pipelines."),
+        ("2022—2024", "ACCENTURE", "SOFTWARE ENGINEER (BACKEND)", "Enterprise data and delivery infrastructure with", "Python, Spark, Airflow, AWS, and Kubernetes."),
     ]
-    for index, (dates, company, role, impact) in enumerate(entries):
-        y = 123 + index * 54
-        content += text(dates, 58, y + 4, 12, theme["accent"], 700)
-        content += line(188, y - 8, 188, y + 25, theme["accent"], 2)
-        content += text(company, 218, y, 14, theme["ink"], 700)
-        content += text(role, 430, y, 12, theme["accent"], 700)
-        content += text(impact, 218, y + 22, 12, theme["muted"])
-    return svg(theme, 370, content)
+    for index, (dates, company, role, impact, impact_continued) in enumerate(entries):
+        y = 124 + index * 140
+        content += text(dates, 58, y + 6, METADATA, theme["accent"], 700)
+        content += line(188, y - 8, 188, y + 100, theme["line"], 2)
+        content += text(company, 218, y, CARD_TITLE, theme["ink"], 700)
+        content += text(role, 600, y, METADATA, theme["accent"], 700)
+        content += text(impact, 218, y + 40, SECONDARY, theme["muted"])
+        content += text(impact_continued, 218, y + 70, SECONDARY, theme["muted"])
+    return svg(theme, 700, content)
 
 
 def stack(theme: dict[str, str]) -> str:
     content = shell(theme, "STACK", "05", "ENGINEERING TOOLKIT")
     groups = [
-        ("LANGUAGES", "Python  ·  TypeScript  ·  Rust  ·  Go  ·  C++  ·  SQL"),
-        ("AI + MODEL SYSTEMS", "LangGraph  ·  RAG  ·  MCP  ·  PyTorch  ·  Vertex AI"),
-        ("BACKEND + DISTRIBUTED", "FastAPI  ·  REST  ·  gRPC  ·  Redis  ·  Kafka"),
-        ("CLOUD + INFRASTRUCTURE", "AWS  ·  Docker  ·  Kubernetes  ·  Terraform  ·  CI/CD"),
-        ("DATA + PERSISTENCE", "PostgreSQL  ·  Firestore  ·  Pinecone  ·  ChromaDB"),
-        ("OBSERVABILITY + DELIVERY", "MLflow  ·  Datadog  ·  Splunk  ·  CloudWatch"),
+        ("LANGUAGES", "Python  ·  TypeScript  ·  Rust  ·  Go  ·", "C++  ·  SQL"),
+        ("AI + MODEL SYSTEMS", "LangGraph  ·  RAG  ·  MCP  ·  PyTorch  ·", "Vertex AI"),
+        ("BACKEND + DISTRIBUTED", "FastAPI  ·  REST  ·  gRPC  ·  Redis  ·", "Kafka"),
+        ("CLOUD + INFRASTRUCTURE", "AWS  ·  Docker  ·  Kubernetes  ·", "Terraform  ·  CI/CD"),
+        ("DATA + PERSISTENCE", "PostgreSQL  ·  Firestore  ·  Pinecone  ·", "ChromaDB"),
+        ("OBSERVABILITY + DELIVERY", "MLflow  ·  Datadog  ·  Splunk  ·", "CloudWatch"),
     ]
-    for index, (label, values) in enumerate(groups):
+    for index, (label, values, values_continued) in enumerate(groups):
         x = 56 + (index % 2) * 530
-        y = 124 + (index // 2) * 64
-        content += rect(x, y, 498, 46, theme["panel"], theme["line"], 6)
-        content += text(label, x + 16, y + 19, 11, theme["accent"], 700)
-        content += text(values, x + 16, y + 37, 12, theme["ink"])
-    return svg(theme, 350, content)
+        y = 124 + (index // 2) * 92
+        content += rect(x, y, 498, 84, theme["panel"], theme["line"], 6)
+        content += text(label, x + 18, y + 25, METADATA, theme["accent"], 700)
+        content += text(values, x + 18, y + 53, SECONDARY, theme["ink"])
+        if values_continued:
+            content += text(values_continued, x + 18, y + 78, SECONDARY, theme["ink"])
+    return svg(theme, 470, content)
 
 
 def current_focus(theme: dict[str, str]) -> str:
     content = shell(theme, "BUILD LOG", "06", "CURRENTLY BUILDING")
-    content += rect(56, 124, 1048, 118, theme["panel"], theme["line"], 8)
-    content += rect(80, 152, 12, 12, theme["accent"], "none", 6)
-    content += text("ACTIVE", 108, 163, 12, theme["accent"], 700)
-    content += text("Production agentic workflows  ·  GPU inference performance", 80, 199, 18, theme["ink"], 700)
-    content += text("Reliable backend platforms  ·  Developer automation", 80, 225, 15, theme["muted"])
-    content += text("OPEN TO AI ENGINEERING, BACKEND, AND SYSTEMS OPPORTUNITIES", 80, 278, 13, theme["accent"], 700)
-    return svg(theme, 326, content)
+    content += rect(56, 124, 1048, 144, theme["panel"], theme["line"], 8)
+    content += rect(80, 154, 14, 14, theme["accent"], "none", 7)
+    content += text("ACTIVE", 112, 168, METADATA, theme["accent"], 700)
+    content += text("Production agentic workflows  ·  GPU inference performance", 80, 213, BODY, theme["ink"], 700)
+    content += text("Reliable backend platforms  ·  Developer automation", 80, 247, SECONDARY, theme["muted"])
+    content += text("OPEN TO AI ENGINEERING, BACKEND, AND SYSTEMS OPPORTUNITIES", 80, 312, METADATA, theme["accent"], 700)
+    return svg(theme, 360, content)
 
 
 def telemetry(theme: dict[str, str]) -> str:
@@ -219,14 +242,14 @@ def telemetry(theme: dict[str, str]) -> str:
     for index, (value, label) in enumerate(stats):
         x = 56 + index * 190
         content += rect(x, 124, 164, 78, theme["panel"], theme["line"], 8)
-        content += text(value, x + 18, 163, 28, theme["accent"], 700)
-        content += text(label, x + 18, 184, 10, theme["muted"], 700)
+        content += text(value, x + 18, 163, DISPLAY, theme["accent"], 700)
+        content += text(label, x + 18, 190, METADATA, theme["muted"], 700)
     content += rect(646, 124, 458, 78, theme["panel"], theme["line"], 8)
-    content += text("REPOSITORY LANGUAGE SUMMARY", 668, 151, 11, theme["accent"], 700)
-    content += text("Python 10  ·  HTML 2  ·  Jupyter 2  ·  JavaScript 1", 668, 176, 12, theme["ink"])
-    content += text("Rust 1  ·  TypeScript 1", 668, 194, 12, theme["ink"])
-    content += text("LIVE CONTRIBUTION CALENDAR", 56, 254, 12, theme["accent"], 700)
-    content += text("Contribution calendar — click through for the current GitHub view.", 56, 279, 13, theme["muted"])
+    content += text("REPOSITORY LANGUAGE SUMMARY", 668, 151, METADATA, theme["accent"], 700)
+    content += text("Python 10  ·  HTML 2  ·  Jupyter 2  ·  JavaScript 1", 668, 178, SECONDARY, theme["ink"])
+    content += text("Rust 1  ·  TypeScript 1", 668, 202, SECONDARY, theme["ink"])
+    content += text("LIVE CONTRIBUTION CALENDAR", 56, 254, METADATA, theme["accent"], 700)
+    content += text("Contribution calendar — click through for the current GitHub view.", 56, 283, SECONDARY, theme["muted"])
     return svg(theme, 318, content)
 
 
